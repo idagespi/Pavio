@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - displayName: string
+    //   - email: string (required)
+    //   - goal: string
+    //   - targetTime: string
+    //   - fitnessLevel: string
+    //   - weeklyAvailability: map
+    //   - preferences: map
+    //   - stravaAccessToken: string (private)
+    //   - stravaRefreshToken: string (private)
+    //   - stravaTokenExpiresAt: number (private)
+    //   - lastSyncAt: timestamp
+    //
+    // Collection: users/{userId}/plans
+    // Document ID: {planId}
+    // Fields:
+    //   - userId: string (required)
+    //   - startDate: string (required)
+    //   - endDate: string (required)
+    //   - status: string (required)
+    //   - createdAt: timestamp
+    //
+    // Collection: users/{userId}/workouts
+    // Document ID: {workoutId}
+    // Fields:
+    //   - userId: string (required)
+    //   - planId: string (required)
+    //   - date: string (required)
+    //   - type: string (required)
+    //   - status: string (required)
+    //   - ... (actuals, targets, weather)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(data, allowedFields) {
+      return data.keys().hasOnly(allowedFields);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Users can only read/write their own profile
+      allow read, write: if isOwner(userId);
+
+      // Validation for user profile
+      function isValidUser(data) {
+        return data.uid == userId &&
+               isValidEmail(data.email) &&
+               (data.displayName is string || !('displayName' in data)) &&
+               data.email.size() < 255;
+      }
+
+      match /plans/{planId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /workouts/{workoutId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /meals/{mealId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}

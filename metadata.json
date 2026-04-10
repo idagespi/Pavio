@@ -1,0 +1,5 @@
+{
+  "name": "Pavio: Personal Fitness Coach",
+  "description": "Pavio is a high-performance AI fitness coach that generates adaptive, data-driven training plans with seamless Strava integration and real-time coaching insights.",
+  "requestFramePermissions": []
+}

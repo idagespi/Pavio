@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user fitness goals, preferences, and integration tokens.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "goal": { "type": "string", "description": "e.g., Half Marathon" },
+        "targetTime": { "type": "string", "description": "e.g., 2h30m" },
+        "fitnessLevel": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+        "weeklyAvailability": { "type": "object", "description": "Map of days to availability windows" },
+        "preferences": { "type": "object" },
+        "stravaAccessToken": { "type": "string" },
+        "stravaRefreshToken": { "type": "string" },
+        "stravaTokenExpiresAt": { "type": "number" },
+        "lastSyncAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "TrainingPlan": {
+      "title": "Training Plan",
+      "description": "The overall training schedule for a specific goal.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["active", "completed", "archived"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "startDate", "endDate", "status"]
+    },
+    "Workout": {
+      "title": "Workout",
+      "description": "An individual training session.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "planId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "type": { "type": "string", "enum": ["easy_run", "long_run", "speed", "strength", "rest"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "targetDistance": { "type": "number", "description": "in km" },
+        "targetPace": { "type": "string" },
+        "status": { "type": "string", "enum": ["planned", "completed", "missed", "adjusted"] },
+        "actualDistance": { "type": "number" },
+        "actualPace": { "type": "string" },
+        "actualHeartRate": { "type": "number" },
+        "stravaActivityId": { "type": "string" },
+        "weatherInfo": { "type": "object" },
+        "fatigueScore": { "type": "number" }
+      },
+      "required": ["userId", "planId", "date", "type", "status"]
+    },
+    "MealPlan": {
+      "title": "Meal Plan",
+      "description": "Daily meal suggestions based on training load.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "meals": { "type": "array", "items": { "type": "object" } },
+        "totalCalories": { "type": "number" }
+      },
+      "required": ["userId", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile and settings"
+    },
+    "/users/{userId}/plans/{planId}": {
+      "schema": "TrainingPlan",
+      "description": "Training plans for the user"
+    },
+    "/users/{userId}/workouts/{workoutId}": {
+      "schema": "Workout",
+      "description": "Workouts associated with a user"
+    },
+    "/users/{userId}/meals/{mealId}": {
+      "schema": "MealPlan",
+      "description": "Meal plans for the user"
+    }
+  }
+}
